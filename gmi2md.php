@@ -145,14 +145,9 @@ final class GemtextToMarkdownConverter
     }
 }
 
-function main()
-{
+if ($argv && $argv[0] && realpath($argv[0]) === __FILE__) {
     $converter = new GemtextToMarkdownConverter();
     $input = stream_get_contents(STDIN);
     $output = $converter->convert($input);
     echo $output;
-}
-
-if ($argv && $argv[0] && realpath($argv[0]) === __FILE__) {
-    main();
 }
