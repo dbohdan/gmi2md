@@ -17,6 +17,7 @@ enum LineType: string
 
 final class GemtextToMarkdownConverter
 {
+    private const BR = '<br>';
     private const HEADING = '/^#{1,3} /';
     private const HTTP = 'http';
     private const LINK_PREFIX = '=>';
@@ -25,12 +26,22 @@ final class GemtextToMarkdownConverter
     private const QUOTE_PREFIX = '>';
     private const WHITESPACE = '/[ \t]+/';
 
-    private const NO_BLANK_TYPES = [
+    private array $blankLineTypes = [
         LineType::Backticks,
         LineType::Heading,
-        LineType::Link,
         LineType::Paragraph
     ];
+
+    private bool $brBeforeLinks;
+
+    public function __construct(bool $brBeforeLinks = false)
+    {
+        $this->brBeforeLinks = $brBeforeLinks;
+
+        if (!$this->brBeforeLinks) {
+            $this->blankLineTypes[] = LineType::Link;
+        }
+    }
 
     public function convert(string $input): string
     {
@@ -76,6 +87,11 @@ final class GemtextToMarkdownConverter
         if ($this->shouldAddBlankLine($lineType, $previousLineType)) {
             $output[] = '';
         }
+
+        if ($this->shouldAddBrPrefix($lineType, $previousLineType)) {
+            $line = self::BR . $line;
+        }
+
         $output[] = $line;
     }
 
@@ -83,8 +99,16 @@ final class GemtextToMarkdownConverter
     {
         return $previousLineType !== LineType::Blank &&
                $currentLineType !== LineType::Blank &&
-               in_array($previousLineType, self::NO_BLANK_TYPES, true) &&
-               in_array($currentLineType, self::NO_BLANK_TYPES, true);
+               in_array($previousLineType, $this->blankLineTypes, true) &&
+               in_array($currentLineType, $this->blankLineTypes, true);
+    }
+
+    private function shouldAddBrPrefix(LineType $currentLineType, LineType $previousLineType): bool
+    {
+        return $this->brBeforeLinks &&
+            $currentLineType === LineType::Link &&
+            ($previousLineType === LineType::Link ||
+             $previousLineType === LineType::Paragraph);
     }
 
     private function lineType(string $line): LineType
@@ -136,7 +160,7 @@ final class GemtextToMarkdownConverter
     }
 }
 
-$converter = new GemtextToMarkdownConverter();
+$converter = new GemtextToMarkdownConverter(true);
 $input = stream_get_contents(STDIN);
 $output = $converter->convert($input);
 echo $output;
