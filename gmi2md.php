@@ -25,7 +25,7 @@ final class GemtextToMarkdownConverter
     private const QUOTE_PREFIX = '>';
     private const WHITESPACE = '/[ \t]+/';
 
-    private const NON_BLANK_TYPES = [
+    private const NO_BLANK_TYPES = [
         LineType::Backticks,
         LineType::Heading,
         LineType::Link,
@@ -83,8 +83,8 @@ final class GemtextToMarkdownConverter
     {
         return $previousLineType !== LineType::Blank &&
                $currentLineType !== LineType::Blank &&
-               in_array($previousLineType, self::NON_BLANK_TYPES, true) &&
-               in_array($currentLineType, self::NON_BLANK_TYPES, true);
+               in_array($previousLineType, self::NO_BLANK_TYPES, true) &&
+               in_array($currentLineType, self::NO_BLANK_TYPES, true);
     }
 
     private function lineType(string $line): LineType
