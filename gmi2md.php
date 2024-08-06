@@ -1,4 +1,4 @@
-#!/usr/bin/env php
+#! /usr/bin/env php
 <?php declare(strict_types=1);
 
 enum LineType: string
@@ -158,7 +158,14 @@ final class GemtextToMarkdownConverter
     }
 }
 
-$converter = new GemtextToMarkdownConverter();
-$input = stream_get_contents(STDIN);
-$output = $converter->convert($input);
-echo $output;
+function main()
+{
+    $converter = new GemtextToMarkdownConverter();
+    $input = stream_get_contents(STDIN);
+    $output = $converter->convert($input);
+    echo $output;
+}
+
+if ($argv && $argv[0] && realpath($argv[0]) === __FILE__) {
+    main();
+}
