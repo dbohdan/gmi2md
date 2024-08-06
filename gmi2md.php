@@ -25,7 +25,7 @@ final class GemtextToMarkdownConverter
 
     private string $separator;
 
-    public function __construct(string $separator = "<br>")
+    public function __construct(string $separator = '<br>')
     {
         $this->separator = $separator;
     }
@@ -56,15 +56,15 @@ final class GemtextToMarkdownConverter
         $trimmedLine = rtrim($line);
 
         if ($trimmedLine === self::PREFORMATTED_DELIMITER) {
-            return [LineType::Backticks, $line];
+            return [LineType::Backticks, htmlspecialchars($line)];
         }
 
         if ($inPreformatted) {
-            return [LineType::Preformatted, $line];
+            return [LineType::Preformatted, htmlspecialchars($line)];
         }
 
         $lineType = $this->lineType($trimmedLine);
-        $convertedLine = $lineType === LineType::Link ? $this->convertLink($trimmedLine) : $trimmedLine;
+        $convertedLine = $lineType === LineType::Link ? $this->convertLink($trimmedLine) : htmlspecialchars($trimmedLine);
 
         return [$lineType, $convertedLine];
     }
@@ -124,14 +124,14 @@ final class GemtextToMarkdownConverter
 
         if (str_starts_with($link, self::HTTP) &&
                 !preg_match(self::WHITESPACE, $link)) {
-            return "<$link>";
+            return '<' . htmlspecialchars($link) . '>';
         }
 
         $parts = preg_split(self::WHITESPACE, $link, 2);
         $url = $parts[0];
         $title = $parts[1] ?? $url;
 
-        return "[$title]($url)";
+        return '[' . htmlspecialchars($title) . '](' . htmlspecialchars($url) . ')';
     }
 
     private function isList(string $line): bool
