@@ -1,7 +1,5 @@
 #!/usr/bin/env php
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 enum LineType: string
 {
@@ -98,9 +96,9 @@ final class GemtextToMarkdownConverter
     private function shouldAddBlankLine(LineType $currentLineType, LineType $previousLineType): bool
     {
         return $previousLineType !== LineType::Blank &&
-               $currentLineType !== LineType::Blank &&
-               in_array($previousLineType, $this->blankLineTypes, true) &&
-               in_array($currentLineType, $this->blankLineTypes, true);
+            $currentLineType !== LineType::Blank &&
+            in_array($previousLineType, $this->blankLineTypes, true) &&
+            in_array($currentLineType, $this->blankLineTypes, true);
     }
 
     private function shouldAddBrPrefix(LineType $currentLineType, LineType $previousLineType): bool
@@ -108,7 +106,7 @@ final class GemtextToMarkdownConverter
         return $this->brBeforeLinks &&
             $currentLineType === LineType::Link &&
             ($previousLineType === LineType::Link ||
-             $previousLineType === LineType::Paragraph);
+                $previousLineType === LineType::Paragraph);
     }
 
     private function lineType(string $line): LineType
@@ -137,8 +135,8 @@ final class GemtextToMarkdownConverter
     {
         $link = trim(substr($line, strlen(self::LIST_PREFIX)));
 
-        if (str_starts_with($link, self::HTTP)
-            && !preg_match(self::WHITESPACE, $link)) {
+        if (str_starts_with($link, self::HTTP) &&
+                !preg_match(self::WHITESPACE, $link)) {
             return "<$link>";
         }
 
