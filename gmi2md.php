@@ -15,7 +15,6 @@ enum LineType: string
 
 final class GemtextToMarkdownConverter
 {
-    private const BR = '<br>';
     private const HEADING = '/^#{1,3} /';
     private const HTTP = 'http';
     private const LINK_PREFIX = '=>';
@@ -24,21 +23,11 @@ final class GemtextToMarkdownConverter
     private const QUOTE_PREFIX = '>';
     private const WHITESPACE = '/[ \t]+/';
 
-    private array $blankLineTypes = [
-        LineType::Backticks,
-        LineType::Heading,
-        LineType::Paragraph
-    ];
+    private string $separator;
 
-    private bool $brBeforeLinks;
-
-    public function __construct(bool $brBeforeLinks = true)
+    public function __construct(string $separator = "<br>")
     {
-        $this->brBeforeLinks = $brBeforeLinks;
-
-        if (!$this->brBeforeLinks) {
-            $this->blankLineTypes[] = LineType::Link;
-        }
+        $this->separator = $separator;
     }
 
     public function convert(string $input): string
@@ -82,12 +71,10 @@ final class GemtextToMarkdownConverter
 
     private function addLineWithSpacing(array &$output, string $line, LineType $lineType, LineType $previousLineType): void
     {
-        if ($this->shouldAddBlankLine($lineType, $previousLineType)) {
+        if ($this->shouldPrependSeparator($lineType, $previousLineType)) {
+            $line = $this->separator . $line;
+        } elseif ($this->shouldAddBlankLine($lineType, $previousLineType)) {
             $output[] = '';
-        }
-
-        if ($this->shouldAddBrPrefix($lineType, $previousLineType)) {
-            $line = self::BR . $line;
         }
 
         $output[] = $line;
@@ -95,16 +82,16 @@ final class GemtextToMarkdownConverter
 
     private function shouldAddBlankLine(LineType $currentLineType, LineType $previousLineType): bool
     {
-        return $previousLineType !== LineType::Blank &&
+        return $currentLineType !== $previousLineType &&
             $currentLineType !== LineType::Blank &&
-            in_array($previousLineType, $this->blankLineTypes, true) &&
-            in_array($currentLineType, $this->blankLineTypes, true);
+            $currentLineType !== LineType::Preformatted &&
+            $previousLineType !== LineType::Blank &&
+            $previousLineType !== LineType::Preformatted;
     }
 
-    private function shouldAddBrPrefix(LineType $currentLineType, LineType $previousLineType): bool
+    private function shouldPrependSeparator(LineType $currentLineType, LineType $previousLineType): bool
     {
-        return $this->brBeforeLinks &&
-            $currentLineType === LineType::Link &&
+        return $currentLineType === LineType::Link &&
             ($previousLineType === LineType::Link ||
                 $previousLineType === LineType::Paragraph);
     }
