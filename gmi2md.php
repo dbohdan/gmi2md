@@ -32,7 +32,7 @@ final class GemtextToMarkdownConverter
 
     private bool $brBeforeLinks;
 
-    public function __construct(bool $brBeforeLinks = false)
+    public function __construct(bool $brBeforeLinks = true)
     {
         $this->brBeforeLinks = $brBeforeLinks;
 
@@ -158,7 +158,7 @@ final class GemtextToMarkdownConverter
     }
 }
 
-$converter = new GemtextToMarkdownConverter(true);
+$converter = new GemtextToMarkdownConverter();
 $input = stream_get_contents(STDIN);
 $output = $converter->convert($input);
 echo $output;
