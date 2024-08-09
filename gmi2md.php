@@ -16,12 +16,12 @@ enum LineType: string
 final class GemtextToMarkdownConverter
 {
     private const BLOCKQUOTE_PREFIX = '>';
-    private const HEADING = '/^#{1,3} /';
+    private const HEADING_REGEX = '/^(#{1,3})[ \t]*/';
     private const HTTP = 'http';
     private const LINK_PREFIX = '=>';
     private const LIST_PREFIX = '* ';
     private const PREFORMATTED_TOGGLE_PREFIX = '```';
-    private const WHITESPACE = '/[ \t]+/';
+    private const WHITESPACE_REGEX = '/[ \t]+/';
 
     private string $separator;
 
@@ -69,6 +69,7 @@ final class GemtextToMarkdownConverter
         $lineType = $this->lineType($trimmedLine);
         $convertedLine = match ($lineType) {
             LineType::Blockquote => $this->convertBlockquote($trimmedLine),
+            LineType::Heading => $this->convertHeading($trimmedLine),
             LineType::Link => $this->convertLink($trimmedLine),
             default => htmlspecialchars($trimmedLine),
         };
@@ -120,7 +121,7 @@ final class GemtextToMarkdownConverter
 
     private function isHeading(string $line): bool
     {
-        return (bool) preg_match(self::HEADING, $line);
+        return (bool) preg_match(self::HEADING_REGEX, $line);
     }
 
     private function isLink(string $line): bool
@@ -134,16 +135,21 @@ final class GemtextToMarkdownConverter
             . htmlspecialchars(substr($line, strlen(self::BLOCKQUOTE_PREFIX)));
     }
 
+    private function convertHeading(string $line): string
+    {
+        return preg_replace(self::HEADING_REGEX, '\1 ', $line);
+    }
+
     private function convertLink(string $line): string
     {
         $link = trim(substr($line, strlen(self::LIST_PREFIX)));
 
         if (str_starts_with($link, self::HTTP) &&
-                !preg_match(self::WHITESPACE, $link)) {
+                !preg_match(self::WHITESPACE_REGEX, $link)) {
             return '<' . htmlspecialchars($link) . '>';
         }
 
-        $parts = preg_split(self::WHITESPACE, $link, 2);
+        $parts = preg_split(self::WHITESPACE_REGEX, $link, 2);
         $url = $parts[0];
         $title = $parts[1] ?? $url;
 

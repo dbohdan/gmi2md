@@ -223,3 +223,8 @@ Baz.
 > Dolor sit amet.
 
 Qux.
+
+## Headings
+
+### No space
+### Multiple spaces
