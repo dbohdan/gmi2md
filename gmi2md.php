@@ -82,11 +82,13 @@ final class GemtextToMarkdownConverter
 
     private function shouldAddBlankLine(LineType $currentLineType, LineType $previousLineType): bool
     {
-        return $currentLineType !== $previousLineType &&
-            $currentLineType !== LineType::Blank &&
-            $currentLineType !== LineType::Preformatted &&
-            $previousLineType !== LineType::Blank &&
-            $previousLineType !== LineType::Preformatted;
+        return $currentLineType === LineType::Paragraph &&
+            $previousLineType === LineType::Paragraph ||
+            ($currentLineType !== $previousLineType &&
+                $currentLineType !== LineType::Blank &&
+                $currentLineType !== LineType::Preformatted &&
+                $previousLineType !== LineType::Blank &&
+                $previousLineType !== LineType::Preformatted);
     }
 
     private function shouldPrependSeparator(LineType $currentLineType, LineType $previousLineType): bool
