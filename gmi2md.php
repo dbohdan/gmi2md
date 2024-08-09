@@ -5,22 +5,22 @@ enum LineType: string
 {
     case Backticks = 'backticks';
     case Blank = 'blank';
+    case Blockquote = 'blockquote';
     case Heading = 'heading';
     case Link = 'link';
     case List = 'list';
     case Paragraph = 'paragraph';
     case Preformatted = 'preformatted';
-    case Quote = 'quote';
 }
 
 final class GemtextToMarkdownConverter
 {
+    private const BACKTICKS_PREFIX = '```';
+    private const BLOCKQUOTE_PREFIX = '>';
     private const HEADING = '/^#{1,3} /';
     private const HTTP = 'http';
     private const LINK_PREFIX = '=>';
     private const LIST_PREFIX = '* ';
-    private const PREFORMATTED_DELIMITER = '```';
-    private const QUOTE_PREFIX = '>';
     private const WHITESPACE = '/[ \t]+/';
 
     private string $separator;
@@ -55,8 +55,11 @@ final class GemtextToMarkdownConverter
     {
         $trimmedLine = rtrim($line);
 
-        if ($trimmedLine === self::PREFORMATTED_DELIMITER) {
-            return [LineType::Backticks, htmlspecialchars($line)];
+        if (str_starts_with($trimmedLine, self::BACKTICKS_PREFIX)) {
+            return [
+                LineType::Backticks,
+                $inPreformatted ? self::BACKTICKS_PREFIX : $line,
+            ];
         }
 
         if ($inPreformatted) {
@@ -64,7 +67,11 @@ final class GemtextToMarkdownConverter
         }
 
         $lineType = $this->lineType($trimmedLine);
-        $convertedLine = $lineType === LineType::Link ? $this->convertLink($trimmedLine) : htmlspecialchars($trimmedLine);
+        $convertedLine = match ($lineType) {
+            LineType::Blockquote => $this->convertBlockquote($trimmedLine),
+            LineType::Link => $this->convertLink($trimmedLine),
+            default => htmlspecialchars($trimmedLine),
+        };
 
         return [$lineType, $convertedLine];
     }
@@ -82,8 +89,9 @@ final class GemtextToMarkdownConverter
 
     private function shouldAddBlankLine(LineType $currentLineType, LineType $previousLineType): bool
     {
-        return $currentLineType === LineType::Paragraph &&
-            $previousLineType === LineType::Paragraph ||
+        return ($currentLineType === $previousLineType &&
+            ($currentLineType === LineType::Blockquote ||
+                $currentLineType === LineType::Paragraph)) ||
             ($currentLineType !== $previousLineType &&
                 $currentLineType !== LineType::Blank &&
                 $currentLineType !== LineType::Preformatted &&
@@ -102,10 +110,10 @@ final class GemtextToMarkdownConverter
     {
         return match (true) {
             $line === '' => LineType::Blank,
+            $this->isBlockquote($line) => LineType::Blockquote,
             $this->isHeading($line) => LineType::Heading,
             $this->isLink($line) => LineType::Link,
             $this->isList($line) => LineType::List,
-            $this->isQuote($line) => LineType::Quote,
             default => LineType::Paragraph,
         };
     }
@@ -118,6 +126,12 @@ final class GemtextToMarkdownConverter
     private function isLink(string $line): bool
     {
         return str_starts_with($line, self::LINK_PREFIX);
+    }
+
+    private function convertBlockquote(string $line): string
+    {
+        return self::BLOCKQUOTE_PREFIX
+            . htmlspecialchars(substr($line, strlen(self::BLOCKQUOTE_PREFIX)));
     }
 
     private function convertLink(string $line): string
@@ -141,9 +155,9 @@ final class GemtextToMarkdownConverter
         return str_starts_with($line, self::LIST_PREFIX);
     }
 
-    private function isQuote(string $line): bool
+    private function isBlockquote(string $line): bool
     {
-        return str_starts_with($line, self::QUOTE_PREFIX);
+        return str_starts_with($line, self::BLOCKQUOTE_PREFIX);
     }
 }
 

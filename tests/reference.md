@@ -167,3 +167,49 @@ Foo.
 Bar.
 
 Baz.
+
+## Blockquotes
+
+> Lorem ipsum.
+
+> Dolor sit amet.
+
+## Mixing paragraphs and blockquotes
+
+### Blockquotes before
+
+> Lorem ipsum.
+
+> Dolor sit amet.
+
+First.
+
+Second.
+
+Third.
+
+### Blockquotes after
+
+First.
+
+Second.
+
+Third.
+
+> Lorem ipsum.
+
+> Dolor sit amet.
+
+### Blockquotes in the middle
+
+Foo.
+
+Bar.
+
+Baz.
+
+> Lorem ipsum.
+
+> Dolor sit amet.
+
+Qux.
