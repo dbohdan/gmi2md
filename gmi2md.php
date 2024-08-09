@@ -3,7 +3,6 @@
 
 enum LineType: string
 {
-    case Backticks = 'backticks';
     case Blank = 'blank';
     case Blockquote = 'blockquote';
     case Heading = 'heading';
@@ -11,16 +10,17 @@ enum LineType: string
     case List = 'list';
     case Paragraph = 'paragraph';
     case Preformatted = 'preformatted';
+    case PreformattedToggle = 'preformatted-toggle';
 }
 
 final class GemtextToMarkdownConverter
 {
-    private const BACKTICKS_PREFIX = '```';
     private const BLOCKQUOTE_PREFIX = '>';
     private const HEADING = '/^#{1,3} /';
     private const HTTP = 'http';
     private const LINK_PREFIX = '=>';
     private const LIST_PREFIX = '* ';
+    private const PREFORMATTED_TOGGLE_PREFIX = '```';
     private const WHITESPACE = '/[ \t]+/';
 
     private string $separator;
@@ -40,7 +40,7 @@ final class GemtextToMarkdownConverter
         foreach ($lines as $line) {
             [$lineType, $convertedLine] = $this->convertLine($line, $inPreformatted);
 
-            if ($lineType === LineType::Backticks) {
+            if ($lineType === LineType::PreformattedToggle) {
                 $inPreformatted = !$inPreformatted;
             }
 
@@ -55,10 +55,10 @@ final class GemtextToMarkdownConverter
     {
         $trimmedLine = rtrim($line);
 
-        if (str_starts_with($trimmedLine, self::BACKTICKS_PREFIX)) {
+        if (str_starts_with($trimmedLine, self::PREFORMATTED_TOGGLE_PREFIX)) {
             return [
-                LineType::Backticks,
-                $inPreformatted ? self::BACKTICKS_PREFIX : $line,
+                LineType::PreformattedToggle,
+                $inPreformatted ? self::PREFORMATTED_TOGGLE_PREFIX : $line,
             ];
         }
 

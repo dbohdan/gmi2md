@@ -24,6 +24,16 @@ ls -l
 
 Foo.
 
+### Alt text
+
+```foo
+ls -l
+```
+
+``` bar
+ls -l
+```
+
 ## Paragraphs
 
 First.
