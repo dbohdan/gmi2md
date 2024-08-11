@@ -1,0 +1,31 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - ubuntu-latest
+        - windows-latest
+
+    steps:
+    - name: Install dependencies with Homebrew
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install php
+
+    - name: 'Disable `autocrlf` in Git'
+      run: git config --global core.autocrlf false
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up just task runner
+      uses: extractions/setup-just@v2
+
+    - name: Run tests
+      run: |
+        just test
