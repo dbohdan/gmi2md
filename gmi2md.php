@@ -113,7 +113,7 @@ final class PreformattedToggleLine implements LineTypeInterface {
     }
 }
 
-final readonly class GemtextToMarkdownConverter {
+final class GemtextToMarkdownConverter {
     private const LINE_TYPES = [
         BlankLine::class,
         BlockquoteLine::class,
