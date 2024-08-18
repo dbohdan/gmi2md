@@ -1,119 +1,148 @@
 #! /usr/bin/env php
-<?php declare(strict_types=1);
+<?php
 
-interface LineTypeInterface {
+declare(strict_types=1);
+
+interface LineTypeInterface
+{
     public static function isType(string $line): bool;
     public static function convert(string $line): string;
 }
 
-final class BlankLine implements LineTypeInterface {
-    public static function isType(string $line): bool {
+final class BlankLine implements LineTypeInterface
+{
+    public static function isType(string $line): bool
+    {
         return $line === '';
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return '';
     }
 }
 
-final class BlockquoteLine implements LineTypeInterface {
+final class BlockquoteLine implements LineTypeInterface
+{
     private const PREFIX = '>';
 
-    public static function isType(string $line): bool {
+    public static function isType(string $line): bool
+    {
         return str_starts_with($line, self::PREFIX);
     }
 
-    public static function convert(string $line): string {
-        return self::PREFIX . htmlspecialchars(substr($line, strlen(self::PREFIX)));
+    public static function convert(string $line): string
+    {
+        return self::PREFIX.htmlspecialchars(substr($line, strlen(self::PREFIX)));
     }
 }
 
-final class HeadingLine implements LineTypeInterface {
+final class HeadingLine implements LineTypeInterface
+{
     private const REGEX = '/^(#{1,3})[ \t]*/';
 
-    public static function isType(string $line): bool {
+    public static function isType(string $line): bool
+    {
         return (bool) preg_match(self::REGEX, $line);
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return preg_replace(self::REGEX, '\1 ', $line);
     }
 }
 
-final class LinkLine implements LineTypeInterface {
+final class LinkLine implements LineTypeInterface
+{
     private const PREFIX = '=>';
     private const HTTP = 'http';
     private const WHITESPACE_REGEX = '/[ \t]+/';
 
-    public static function isType(string $line): bool {
+    public static function isType(string $line): bool
+    {
         return str_starts_with($line, self::PREFIX);
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         $link = trim(substr($line, strlen(self::PREFIX)));
 
         return str_starts_with($link, self::HTTP)
             && !preg_match(self::WHITESPACE_REGEX, $link)
-                ? '<' . htmlspecialchars($link) . '>'
+                ? '<'.htmlspecialchars($link).'>'
                 : self::createMarkdownLink($link);
     }
 
-    private static function createMarkdownLink(string $link): string {
+    private static function createMarkdownLink(string $link): string
+    {
         $parts = preg_split(self::WHITESPACE_REGEX, $link, 2);
         $url = $parts[0];
         $title = $parts[1] ?? $url;
 
-        return '[' . htmlspecialchars($title) . '](' . htmlspecialchars($url) . ')';
+        return '['.htmlspecialchars($title).']('.htmlspecialchars($url).')';
     }
 }
 
-final class ListLine implements LineTypeInterface {
+final class ListLine implements LineTypeInterface
+{
     private const PREFIX = '* ';
 
-    public static function isType(string $line): bool {
+    public static function isType(string $line): bool
+    {
         return str_starts_with($line, self::PREFIX);
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return htmlspecialchars($line);
     }
 }
 
-final class ParagraphLine implements LineTypeInterface {
-    public static function isType(string $line): bool {
+final class ParagraphLine implements LineTypeInterface
+{
+    public static function isType(string $line): bool
+    {
         // This is the default case.
         return true;
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return htmlspecialchars($line);
     }
 }
 
-final class PreformattedLine implements LineTypeInterface {
-    public static function isType(string $line): bool {
+final class PreformattedLine implements LineTypeInterface
+{
+    public static function isType(string $line): bool
+    {
         // This is handled separately in the main converter.
         return false;
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return htmlspecialchars($line);
     }
 }
 
-final class PreformattedToggleLine implements LineTypeInterface {
+final class PreformattedToggleLine implements LineTypeInterface
+{
     private const PREFIX = '```';
 
-    public static function isType(string $line): bool {
+    public static function isType(string $line): bool
+    {
         return str_starts_with(rtrim($line), self::PREFIX);
     }
 
-    public static function convert(string $line): string {
+    public static function convert(string $line): string
+    {
         return self::PREFIX;
     }
 }
 
-final class GemtextToMarkdownConverter {
+final class GemtextToMarkdownConverter
+{
     private const LINE_TYPES = [
         BlankLine::class,
         BlockquoteLine::class,
@@ -127,9 +156,11 @@ final class GemtextToMarkdownConverter {
 
     public function __construct(
         private string $separator = '<br>'
-    ) {}
+    ) {
+    }
 
-    public function convert(string $input): string {
+    public function convert(string $input): string
+    {
         $lines = explode("\n", $input);
         $output = [];
         $inPreformatted = false;
@@ -149,7 +180,8 @@ final class GemtextToMarkdownConverter {
         return implode("\n", $output);
     }
 
-    private function convertLine(string $line, bool $inPreformatted): array {
+    private function convertLine(string $line, bool $inPreformatted): array
+    {
         $trimmedLine = rtrim($line);
 
         if (PreformattedToggleLine::isType($trimmedLine)) {
@@ -164,10 +196,12 @@ final class GemtextToMarkdownConverter {
         }
 
         $lineType = $this->getLineType($trimmedLine);
+
         return [$lineType, $lineType::convert($trimmedLine)];
     }
 
-    private function getLineType(string $line): string {
+    private function getLineType(string $line): string
+    {
         foreach (self::LINE_TYPES as $lineType) {
             if ($lineType::isType($line)) {
                 return $lineType;
@@ -177,9 +211,10 @@ final class GemtextToMarkdownConverter {
         throw new UnexpectedValueException('Unexpected line type');
     }
 
-    private function addLineWithSpacing(array &$output, string $line, string $lineType, string $previousLineType): void {
+    private function addLineWithSpacing(array &$output, string $line, string $lineType, string $previousLineType): void
+    {
         if ($this->shouldPrependSeparator($lineType, $previousLineType)) {
-            $line = $this->separator . $line;
+            $line = $this->separator.$line;
         } elseif ($this->shouldAddBlankLine($lineType, $previousLineType)) {
             $output[] = '';
         }
@@ -187,7 +222,8 @@ final class GemtextToMarkdownConverter {
         $output[] = $line;
     }
 
-    private function shouldAddBlankLine(string $currentLineType, string $previousLineType): bool {
+    private function shouldAddBlankLine(string $currentLineType, string $previousLineType): bool
+    {
         return ($currentLineType === $previousLineType
             && ($currentLineType === BlockquoteLine::class
                 || $currentLineType === ParagraphLine::class))
@@ -198,7 +234,8 @@ final class GemtextToMarkdownConverter {
                 && $previousLineType !== PreformattedLine::class);
     }
 
-    private function shouldPrependSeparator(string $currentLineType, string $previousLineType): bool {
+    private function shouldPrependSeparator(string $currentLineType, string $previousLineType): bool
+    {
         return $currentLineType === LinkLine::class
             && ($previousLineType === LinkLine::class
                 || $previousLineType === ParagraphLine::class);
