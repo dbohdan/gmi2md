@@ -132,7 +132,7 @@ final class PreformattedToggleLine implements LineTypeInterface
 
     public static function isType(string $line): bool
     {
-        return str_starts_with(rtrim($line), self::PREFIX);
+        return str_starts_with($line, self::PREFIX);
     }
 
     public static function convert(string $line): string
@@ -182,9 +182,7 @@ final class GemtextToMarkdownConverter
 
     private function convertLine(string $line, bool $inPreformatted): array
     {
-        $trimmedLine = rtrim($line);
-
-        if (PreformattedToggleLine::isType($trimmedLine)) {
+        if (PreformattedToggleLine::isType($line)) {
             return [
                 PreformattedToggleLine::class,
                 $inPreformatted ? PreformattedToggleLine::convert($line) : $line,
@@ -195,9 +193,9 @@ final class GemtextToMarkdownConverter
             return [PreformattedLine::class, PreformattedLine::convert($line)];
         }
 
-        $lineType = $this->getLineType($trimmedLine);
+        $lineType = $this->getLineType($line);
 
-        return [$lineType, $lineType::convert($trimmedLine)];
+        return [$lineType, $lineType::convert(rtrim($line))];
     }
 
     private function getLineType(string $line): string
